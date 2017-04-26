@@ -1,20 +1,18 @@
-;;;; wunderbar — current/forecasted weather in i3status 1-line format
-
-;;; Dependencies: Weather Underground API key
-
-;; TODO: move defs to defns to avoid work during compile
-;; TODO: auto-detect location
-;; TODO: standardize on env, not getenv
-
 (ns wunder.core
+  "wunderbar — current/forecasted weather in i3status 1-line format
+
+  Dependencies: Weather Underground API key"
   (:gen-class)
   (:require [clojure.data.json :as json]
             [clojure.string :as str]
             [environ.core :refer [env]]
             [org.httpkit.client :as http]
             ;; [taoensso.timbre :as timbre :refer [log info debug warn error]]
-            [environ.core :refer [env]])
-  (:import java.lang.Math))
+            [environ.core :refer [env]]))
+
+;; TODO: move defs to defns to avoid work during compile
+;; TODO: auto-detect location
+;; TODO: standardize on env, not getenv
 
 
 ;; Wunderground API endpoint
@@ -129,18 +127,16 @@
 ;; Present conditions
 
 (defn select-present
-  "Grab the blob of present-time observations." []
+  "Grab the blob of present-time observations."
+  []
   (get-in (wunder-request present-url) [:current_observation]))
 
-;; (pres->str (select-present))
 (defn pres->str
-  "Massage metrics to desired units as strings.
-  Input: EDN blob
-  Ex: \"Cr79/W1\"
-  "
+  "Massage present conditions metrics to desired units as strings.
+
+  Input: large map of present snapshot
+  Output: \"Cr79/W1\""
   [pc] ; present conditions
-  ;; Needs more piecemeal work than `juxt`
-  ((juxt pres-units :icon :pressure_in :wind_mph :wind_dir) pc)
   (let [cnd    (get conds (:icon pc))
         temp   (str (Math/round (pres-units pc)))
         barom  (str "B" (:pressure_in pc))
@@ -154,12 +150,17 @@
 ;; Hourly forecast for today
 
 (defn select-hours
-  "Grab pieces of hourly blob; every third hour." []
+  "Grab pieces of hourly blob; every third hour."
+  []
   (take 4 (take-nth 3 (:hourly_forecast
                        (wunder-request hourly-url)))))
 
-;; (hourly->str (select-hours)) => "CR54 CR54 CR53 Rn50 "
+;; (hourly->str (select-hours))
 (defn hourly->str
+  "Massage hourly conditions into a string.
+
+  Input: large map of hourly data
+  Output: \"CR54 CR54 CR53 Rn50 \""
   [hc] ; hourly conditions
   (map (juxt :icon :temp :wdir) hc)
   (let [cnds (map #(get conds (:icon %)) hc)
@@ -172,7 +173,8 @@
 ;; Daily forecasting for this week
 
 (defn select-days
-  "Request/transform into list of forecast days data" []
+  "Request/transform into list of forecast days data"
+  []
   (take ndays (get-in (wunder-request forecast-url)
                       [:forecast :simpleforecast :forecastday])))
 
@@ -185,8 +187,11 @@
         cnds (map #(get conds (:icon %)) days)]
     (conj lhs cnds)))
 
-;; (forecast->str (select-days)) => "CR4567 Rn4553 Rn4754 Rn4753"
 (defn forecast->str
+  "Massage the whole week into a string.
+
+  Input: large map of week forecast data
+  Output: \"CR4567 Rn4553 Rn4754 Rn4753\""
   [days]
   (let [ds (map #(apply str %)
                 (partition 3 (apply interleave (lohis days))))]
@@ -196,9 +201,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main
 
-;; "Cl52/W2/P-999.00 | CR51 Rn48 Rn47 Rn46 | Rn4556 Rn4353 Rn4852 Rn4252 CR4054 CR3958 PC4463"
 (defn -main
-  "Put present, hourly, daily together into output for status bar"
+  "Put present, hourly, daily together into output for status bar
+
+  Output: \"Cl52/W2/P-999.00 | CR51 Rn48 Rn47 Rn46 | Rn4556 Rn4353 Rn4852 Rn4252 CR4054 CR3958 PC4463\"
+  "
   [& args]
   (check-key)
   (debug "fetching weather for" loc)
@@ -206,47 +213,5 @@
         hrly (hourly->str (select-hours))
         dyly (forecast->str (select-days))]
     (spit "/tmp/wunderbar.txt" (str pres pws-display " | " hrly "| " dyly))))
-;; (println "foo" "bar")
-;; (-main)
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Sample Data
-;;
-;; {:date
-;;  {:epoch "1492912800",
-;;   :min "00",
-;;   :day 22,
-;;   :hour 19,
-;;   :yday 111,
-;;   :monthname_short "Apr",
-;;   :isdst "1",
-;;   :month 4,
-;;   :ampm "PM",
-;;   :tz_short "PDT",
-;;   :tz_long "America/Los_Angeles",
-;;   :monthname "April",
-;;   :year 2017,
-;;   :weekday "Saturday",
-;;   :sec 0,
-;;   :pretty "7:00 PM PDT on April 22, 2017",
-;;   :weekday_short "Sat"},
-;;  :snow_allday {:in 0.0, :cm 0.0},
-;;  :qpf_day {:in 0.0, :mm 0},
-;;  :pop 40,
-;;  :qpf_allday {:in 0.03, :mm 1},
-;;  :avehumidity 64,
-;;  :minhumidity 0,
-;;  :snow_day {:in 0.0, :cm 0.0},
-;;  :icon "chancerain",
-;;  :high {:fahrenheit "60", :celsius "16"},
-;;  :skyicon "",
-;;  :snow_night {:in 0.0, :cm 0.0},
-;;  :conditions "Chance of Rain",
-;;  :avewind {:mph 14, :kph 23, :dir "SW", :degrees 224},
-;;  :maxhumidity 0,
-;;  :low {:fahrenheit "45", :celsius "7"},
-;;  :period 1,
-;;  :qpf_night {:in 0.03, :mm 1},
-;;  :icon_url "http://icons.wxug.com/i/c/k/chancerain.gif",
-;;  :maxwind {:mph 20, :kph 32, :dir "SW", :degrees 224}}
+;; (-main) test run
