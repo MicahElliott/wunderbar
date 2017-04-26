@@ -1,6 +1,4 @@
-<img src="https://icons.wxug.com/logos/JPG/wundergroundLogo_4c_horz.jpg" align="left" height="100px" hspace="5px"/>
-
-# Wunderbar
+<img src="https://raw.githubusercontent.com/MicahElliott/wunderbar/master/img/wunderbar.jpg" align="left" hspace="5px"/>
 
 [Configuration][2] | [Running][3] | [i3status][4] | [Shell Prompt][5]
 
@@ -9,11 +7,7 @@ i3bar/[i3status](https://github.com/i3/i3status) (or any text based
 display like prompts or conky).
 
 **Wunderbar prints a concise display of current and forecasted
-weather.** For example, the following shows three sections for
-Beaverton, OR, USA, for _sunset/sunrise_ and _present conditions_
-(Rain Heavy, 50 degrees F, Wind 18 mph, Humidity 81); the _next 9
-hours_ (Rain Moderate and Heavy, temps 50 and 49); and the _next six
-days_ of highs and lows.
+weather.**
 
     Cl48/W3 | Cl48 MC45 MC44 MC45 | MC4357 CR5054 CR4054 CR4055 ...
     ^^^^^^^   ^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -45,7 +39,7 @@ nearest
 Alternatively, you can just use your zip code (or regional
 equivalent).  An example for _Beaverton, OR, USA_ is:
 
-    % export WUNDERLOC=KORBEAVE74
+    % export WUNDERLOC=KORBEAVE74  # a pws near me
     OR
     % export WUNDERLOC=97005
 
@@ -75,7 +69,7 @@ Put Weatherbar into your crontab to run every half-hour.
     */30 * * * *    WUNDERKEY=123... WUNDERLOC=456... java -jar /path/to/wunder-0.1.0-SNAPSHOT-standalone.jar
 
 On each run, a temporary file, `/tmp/wunderbar.txt`, is created/replaced,
-holding the text of the last run.
+holding the one-line text of the current run.
 
 While testing, be careful about making runs in quick succession.
 The
@@ -89,8 +83,9 @@ If you want to see logging output:
 
 It should be enough to **update (run) every 15 or 30 minutes**.
 Although it may be slow to run (a second or two), the status bar
-itself will be very quick to update (e.g., every second or few) since
-it's only reading a temporary file — not calling anything.
+itself will be very quick to update (e.g., you may update your actual
+bar every second or few) since it's only reading a temporary file —
+not calling anything.
 
 
 ## Add to i3status
@@ -141,6 +136,8 @@ It's already captured, but I don't display it for brevity's sake.
 You could have a randomly rotating weather status showing all the
 places you'd rather be, like Hawaiʻi.
 
+Could auto-detect location based on IP, etc, and find nearby PWS.
+
 
 ## Prior work
 
@@ -158,7 +155,7 @@ Copyright © 2017 Micah Elliott
 Distributed under the Eclipse Public License, the same as Clojure.
 
 
-[2]: #install
+[2]: #configure-wunderground-and-wunderbar
 [3]: #run-it
 [4]: #add-to-i3status
 [5]: #as-a-shell-prompt
