@@ -9,7 +9,8 @@
                  [org.clojure/data.json "0.2.6"]
                  ;; [com.taoensso/timbre "4.10.0"]
                  [environ "1.1.0"]]
-  :plugins [[lein-environ "1.1.0"]]
+  :plugins [[lein-environ "1.1.0"]
+            [lein-codox "0.10.3"]]
   ;; :profiles {:dev {:env {:timbre-level "info"
   ;;                        :wunderloc "97005"}}}
   :main wunder.core

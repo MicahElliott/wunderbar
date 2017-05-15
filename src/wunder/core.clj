@@ -16,7 +16,9 @@
 
 
 ;; Wunderground API endpoint
-(def wapi "http://api.wunderground.com/api/")
+(def wapi
+  "Top of Wunderground API endpoint"
+  "http://api.wunderground.com/api/")
 
 ;; Wunderground API key every user/dev must have personally
 (def wkey (System/getenv "WUNDERKEY"))
@@ -83,25 +85,52 @@
 ;; This is a cute little abbreviation table for compressed display.
 ;; Surprising how many few codes wunderground has compared to
 ;; openweathermap.
-(def conds {"chanceflurries" "CF"
-            "chancerain"     "CR"
-            "chancesleet"    "CH"
-            "chancesnow"     "CS"
-            "chancetstorms"  "CT"
-            "clear"          "Cr"
-            "cloudy"         "Cd"
-            "flurries"       "Fl"
-            "fog"            "Fg"
-            "hazy"           "Hz"
-            "mostlycloudy"   "MC"
-            "mostlysunny"    "MS"
-            "partlycloudy"   "PC"
-            "partlysunny"    "PS"
-            "rain"           "Rn"
-            "sleet"          "Hl"
-            "snow"           "Sw"
-            "sunny"          "Sy"
-            "tstorms"        "Th"})
+(def conds
+  (if (env :wunderjusttext)
+    {"chanceflurries" "CF"
+     "chancerain"     "CR"
+     "chancesleet"    "CH"
+     "chancesnow"     "CS"
+     "chancetstorms"  "CT"
+     "clear"          "Cr"
+     "cloudy"         "Cd"
+     "flurries"       "Fl"
+     "fog"            "Fg"
+     "hazy"           "Hz"
+     "mostlycloudy"   "MC"
+     "mostlysunny"    "MS"
+     "partlycloudy"   "PC"
+     "partlysunny"    "PS"
+     "rain"           "Rn"
+     "sleet"          "Hl"
+     "snow"           "Sw"
+     "sunny"          "Sy"
+     "tstorms"        "Th"
+     }
+    {"chanceflurries" "c"
+     "chancerain"     "c" ; bathtub
+     "chancesleet"    "c"
+     "chancesnow"     "c"
+     "chancetstorms"  "c"
+     "clear"          ""  ; smile, eye
+     "cloudy"         ""  ; cloud
+     "flurries"       ""  ; superpowers
+     "fog"            ""  ; eye-slash, low-vision
+     "hazy"           ""  ; fire-extinguisher
+     "mostlycloudy"   "m"
+     "mostlysunny"    "m"
+     "partlycloudy"   "p"
+     "partlysunny"    "p"
+     "rain"           ""  ; bathtub, shower, umbrella, tint, barcode
+     "sleet"          ""  ; soundcloud
+     "snow"           ""  ; snowflake
+     "sunny"          ""  ; certificate, sun-o
+     "tstorms"        ""  ; flash
+     }))
+;; Rather show font-awesome icons
+;; FIXME: should be an option
+
+
 
 ;; Could grab all three URLs in parallel, but not worth it yet.
 ;; Really should check for full payload containing valid JSON, and
@@ -179,13 +208,13 @@
                       [:forecast :simpleforecast :forecastday])))
 
 ;; '(("CR" "Rn" "Rn" "Rn") ("45" "45" "47" "47") ("67" "53" "54" "53"))
-(defn lohis
-  "Generate seq of conds, los, his from `days` (large structure)"
+(defn hilos
+  "Generate seq of conds, his, los from `days` (large structure)"
   [days]
-  (let [lhs  (for [lohi [:low :high]]
-               (map #(get-in % [lohi fc-units]) days))
+  (let [hls  (for [hilo [:high :low]]
+               (map #(get-in % [hilo fc-units]) days))
         cnds (map #(get conds (:icon %)) days)]
-    (conj lhs cnds)))
+    (conj hls cnds)))
 
 (defn forecast->str
   "Massage the whole week into a string.
@@ -194,7 +223,7 @@
   Output: \"CR4567 Rn4553 Rn4754 Rn4753\""
   [days]
   (let [ds (map #(apply str %)
-                (partition 3 (apply interleave (lohis days))))]
+                (partition 3 (apply interleave (hilos days))))]
     (str/join " " ds)))
 
 

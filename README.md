@@ -52,6 +52,29 @@ You might want to display your PWS ID if you move around much.
 
     % export WUNDERSHOWLOC=yes
 
+It's pretty neat to see weather icons instead of little text
+abbreviations.  If you want the icons in your bar, see
+this
+[i3 config page](https://wiki.archlinux.org/index.php/I3#Iconic_fonts_in_the_status_bar).
+Basically, you need to install font-awesome on your system, and put
+this into your `~/.i3/config:
+
+    bar {
+      ...
+      font pango:DejaVu Sans Mono, Awesome 8
+    }
+
+<img src="https://raw.githubusercontent.com/MicahElliott/wunderbar/master/img/example-with-icons.jpg" hspace="5px"/>
+
+The icons weren't designed for weather, but there are approximations
+that convey the conditions pretty well.  There's a prefix of `c`
+("chance of"), `m` ("mostly"), and `p` ("partly") for each icon when
+appropriate.
+
+Icons are now the default.  If you want to go with plain text:
+
+    % export WUNDERJUSTTEXT=yes
+
 
 ## Run it
 
