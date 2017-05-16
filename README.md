@@ -23,6 +23,10 @@ conditions mnemonics.
 
 ## Configure Wunderground and Wunderbar
 
+Before running you have to do some minimal configuration.
+
+### API key (required)
+
 Get your own free Wunderground API key
 by [signing up](https://www.wunderground.com/signup?mode=api_signup).
 Quick and easy (beware the auto-play audio ads!).  Tell Wunderbar
@@ -30,6 +34,8 @@ about your key (and other things) by exporting environment variables
 in your shell:
 
     % export WUNDERKEY=abc123  # but use your own!
+
+### Set location (required to be useful)
 
 Find your approximate location
 at [wunderground.com](https://www.wunderground.com/) by searching.
@@ -43,21 +49,28 @@ equivalent).  An example for _Beaverton, OR, USA_ is:
     OR
     % export WUNDERLOC=97005
 
+### Temperature units (recommended)
+
 Set your _temperature units_ for Fahrenheit (`f` (default)) or Celsius
 (`c`).
 
     % export WUNDERUNITS=f
 
+### Personal Weather Station display (optional)
+
 You might want to display your PWS ID if you move around much.
 
     % export WUNDERSHOWLOC=yes
+
+### Font-awesome icons (optional)
 
 It's pretty neat to see weather icons instead of little text
 abbreviations.  If you want the icons in your bar, see
 this
 [i3 config page](https://wiki.archlinux.org/index.php/I3#Iconic_fonts_in_the_status_bar).
-Basically, you need to install font-awesome on your system, and put
-this into your `~/.i3/config:
+Basically, you need to install [font-awesome](http://fontawesome.io/)
+on your system (place the `.otf` in `~/.fonts`, and put this into your
+`~/.i3/config` (and see further config for i3status below):
 
     bar {
       ...
@@ -66,24 +79,36 @@ this into your `~/.i3/config:
 
 <img src="https://raw.githubusercontent.com/MicahElliott/wunderbar/master/img/example-with-icons.jpg" hspace="5px"/>
 
-The icons weren't designed for weather, but there are approximations
-that convey the conditions pretty well.  There's a prefix of `c`
-("chance of"), `m` ("mostly"), and `p` ("partly") for each icon when
-appropriate.
+The font-awesome icons weren't designed for weather, but there are
+approximations that convey the conditions quite well (though "Clear
+skies" is just a smiley face since "Sunny" is apparently different and
+takes the sun icon).  There's a prefix of `c` ("chance of"), `m`
+("mostly"), and `p` ("partly") for each icon when appropriate.
 
-Icons are now the default.  If you want to go with plain text:
+Icons are now the default.  If you want to go with plain text (and not
+have to install font-awesome):
 
     % export WUNDERJUSTTEXT=yes
 
 
 ## Run it
 
-Clone this repo.
+### Option 1: source-clone and build (harder)
 
-Build an uberjar (generate something like
+Clone [this repo](https://github.com/MicahElliott/wunderbar).
+
+Ensure [Leiningen](https://leiningen.org/) is installed.
+
+Build a runnable _uberjar_ (generate something like
 `target/wunder-0.1.0-SNAPSHOT-standalone.jar`):
 
     % lein uberjar
+
+### Option 2: simply download (easy)
+
+Download a runnable [jar file](http://micahelliott.com/dl/wunder-0.1.0-SNAPSHOT-standalone.jar).
+
+### Run continuously
 
 Put Weatherbar into your crontab to run every half-hour.
 
@@ -156,6 +181,10 @@ report.
 Might be worth adding _wind_ reporting if you live in a windy city.
 It's already captured, but I don't display it for brevity's sake.
 
+Precipitation might be nice, but if the condition is "Rain" then I
+don't see a huge benefit to a "100% precipitation" indicator.  Other
+percentages may be useful.
+
 You could have a randomly rotating weather status showing all the
 places you'd rather be, like Hawaiʻi.
 
@@ -166,9 +195,9 @@ Could auto-detect location based on IP, etc, and find nearby PWS.
 
 This project started out as a Zsh script using OpenWeatherMap.  I
 found Wunderground to be a more reliable and accurate service and
-wanted to rewrite it in Clojure.  So this builds on some things
-learned from Weatherbar.  This version is missing OWM's sunup/sundown
-feature, which was kinda' nice.
+wanted to rewrite it in Clojure to be more robust.  So this builds on
+some things learned from Weatherbar.  This version is missing OWM's
+sunup/sundown time feature, which was kinda' nice.
 
 
 ## License
