@@ -207,14 +207,22 @@
   (take ndays (get-in (wunder-request forecast-url)
                       [:forecast :simpleforecast :forecastday])))
 
+;; (mark-up [["81" "93"] ["5" "6"]])
+;; (concat [["Cd" "Sn"]] [["81" "93"] ["5" "6"]])
+(defn mark-up [[his los]]
+  (let [mhis (map #(str "<span color=\\\"#f77\\\"><b>" % "</b></span>" ) his)
+        mlos (map #(str "<span color=\\\"#2ed\\\">"    %     "</span> ") los)]
+    [mhis mlos]))
+
 ;; '(("CR" "Rn" "Rn" "Rn") ("45" "45" "47" "47") ("67" "53" "54" "53"))
 (defn hilos
   "Generate seq of conds, his, los from `days` (large structure)"
   [days]
   (let [hls  (for [hilo [:high :low]]
                (map #(get-in % [hilo fc-units]) days))
+        hls2 (mark-up hls)
         cnds (map #(get conds (:icon %)) days)]
-    (conj hls cnds)))
+    (concat [cnds] hls2)))
 
 (defn forecast->str
   "Massage the whole week into a string.
@@ -234,6 +242,7 @@
   "Put present, hourly, daily together into output for status bar
 
   Output: \"Cl52/W2/P-999.00 | CR51 Rn48 Rn47 Rn46 | Rn4556 Rn4353 Rn4852 Rn4252 CR4054 CR3958 PC4463\"
+  60/W0 | 62 m62 p59 p52 | 6147 p7352 8256 8556 8658 <span color=\"#f77\"><b>86</b></span><span color=\"#2ed\">56</span> 8354
   "
   [& args]
   (check-key)
