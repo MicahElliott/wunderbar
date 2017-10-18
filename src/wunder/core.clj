@@ -5,7 +5,6 @@
   (:gen-class)
   (:require [clojure.data.json :as json]
             [clojure.string :as str]
-            [environ.core :refer [env]]
             [org.httpkit.client :as http]
             ;; [taoensso.timbre :as timbre :refer [log info debug warn error]]
             [environ.core :refer [env]]))
@@ -107,20 +106,20 @@
      "sunny"          "Sy"
      "tstorms"        "Th"
      }
-    {"chanceflurries" "c"
-     "chancerain"     "c" ; bathtub
-     "chancesleet"    "c"
-     "chancesnow"     "c"
-     "chancetstorms"  "c"
+    {"chanceflurries" "c"
+     "chancerain"     "c" ; bathtub
+     "chancesleet"    "c"
+     "chancesnow"     "c"
+     "chancetstorms"  "c"
      "clear"          ""  ; smile, eye
      "cloudy"         ""  ; cloud
      "flurries"       ""  ; superpowers
      "fog"            ""  ; eye-slash, low-vision
      "hazy"           ""  ; fire-extinguisher
-     "mostlycloudy"   "m"
-     "mostlysunny"    "m"
-     "partlycloudy"   "p"
-     "partlysunny"    "p"
+     "mostlycloudy"   "m"
+     "mostlysunny"    "m"
+     "partlycloudy"   "p"
+     "partlysunny"    "p"
      "rain"           ""  ; bathtub, shower, umbrella, tint, barcode
      "sleet"          ""  ; soundcloud
      "snow"           ""  ; snowflake
@@ -130,7 +129,10 @@
 ;; Rather show font-awesome icons
 ;; FIXME: should be an option
 
-
+;; Use J for Thu, D for Fri, like most romance languages
+;; API daily data is [:date :weekday_short]
+(def weekdays {"Mon" "M:", "Tue" "T:", "Wed" "W:", "Thu" "J:", "Fri" "F:"
+               "Sat" "S:", "Sun" "D:"})
 
 ;; Could grab all three URLs in parallel, but not worth it yet.
 ;; Really should check for full payload containing valid JSON, and
@@ -195,7 +197,7 @@
   (let [cnds (map #(get conds (:icon %)) hc)
         temp (map #(get-in % [:temp hrly-units]) hc)
         wdir (map #(get-in % [:wdir :dir]) hc)]
-    (apply str (interleave cnds temp (repeat " ")))))
+    (str/join (interleave cnds temp (repeat " ")))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -208,21 +210,32 @@
                       [:forecast :simpleforecast :forecastday])))
 
 ;; (mark-up [["81" "93"] ["5" "6"]])
-;; (concat [["Cd" "Sn"]] [["81" "93"] ["5" "6"]])
-(defn mark-up [[his los]]
-  (let [mhis (map #(str "<span color=\\\"#f77\\\"><b>" % "</b></span>" ) his)
-        mlos (map #(str "<span color=\\\"#2ed\\\">"    %     "</span> ") los)]
+;; (concat [["J" "F"] ["Cd" "Sn"]] [["81" "93"] ["5" "6"]])
+(defn mark-up
+  "Pango markup: https://developer.gnome.org/pango/stable/PangoMarkupFormat.html"
+  [[his los]]
+  (let [mhis (map #(str "<span color=\\\"#f77\\\"><b>" % "</b></span>") his)
+        mlos (map #(str "<span color=\\\"#2ed\\\">"    %     "</span>") los)]
     [mhis mlos]))
 
 ;; '(("CR" "Rn" "Rn" "Rn") ("45" "45" "47" "47") ("67" "53" "54" "53"))
 (defn hilos
-  "Generate seq of conds, his, los from `days` (large structure)"
+  "Generate seq of conds, his, los from `days` (large structure)
+  Things to track: hi, lo, wind, humidity, precip
+  Unavailable via API: ozone, pollen
+  "
   [days]
-  (let [hls  (for [hilo [:high :low]]
+  (let [dows (map #(weekdays (get-in % [:date :weekday_short])) days)
+        cnds (map #(get conds (:icon %)) days)
+        wnds (map #(get-in % [:avewind :mph]) days)
+        hums (map #(get-in % [:avehumidity]) days)    ; int; might need to convert to int
+        ;; Quantitative Precipitation Forecasts (qpf)
+        prcs (map #(get-in % [:qpf_allday :in]) days) ; float; might need to convert to int
+        hls  (for [hilo [:high :low]]
                (map #(get-in % [hilo fc-units]) days))
         hls2 (mark-up hls)
-        cnds (map #(get conds (:icon %)) days)]
-    (concat [cnds] hls2)))
+        ]
+    (concat [dows cnds wnds hums prcs] hls2)))
 
 (defn forecast->str
   "Massage the whole week into a string.
@@ -230,16 +243,16 @@
   Input: large map of week forecast data
   Output: \"CR4567 Rn4553 Rn4754 Rn4753\""
   [days]
-  (let [ds (map #(apply str %)
-                (partition 3 (apply interleave (hilos days))))]
+  ;; FIXME: magic number 7
+  (let [ds (map #(str/join %)
+                (partition 7 (apply interleave (hilos days))))]
     (str/join " " ds)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main
 
 (defn -main
-  "Put present, hourly, daily together into output for status bar
+  "Put present, hourly, daily together into output for status bar.
 
   Output: \"Cl52/W2/P-999.00 | CR51 Rn48 Rn47 Rn46 | Rn4556 Rn4353 Rn4852 Rn4252 CR4054 CR3958 PC4463\"
   60/W0 | 62 m62 p59 p52 | 6147 p7352 8256 8556 8658 <span color=\"#f77\"><b>86</b></span><span color=\"#2ed\">56</span> 8354
