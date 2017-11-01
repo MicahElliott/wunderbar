@@ -29,7 +29,9 @@ Before running you have to do some minimal configuration.
 
 Get your own free Wunderground API key
 by [signing up](https://www.wunderground.com/signup?mode=api_signup).
-Quick and easy (beware the auto-play audio ads!).  Tell Wunderbar
+Quick and easy (beware the auto-play audio ads!).  You might need to
+visit [the API](https://www.wunderground.com/weather/api/) to find
+your key.  Tell Wunderbar
 about your key (and other things) by exporting environment variables
 in your shell:
 
@@ -68,8 +70,12 @@ It's pretty neat to see weather icons instead of little text
 abbreviations.  If you want the icons in your bar, see
 this
 [i3 config page](https://wiki.archlinux.org/index.php/I3#Iconic_fonts_in_the_status_bar).
+
 Basically, you need to install [font-awesome](http://fontawesome.io/)
-on your system (place the `.otf` in `~/.fonts`, and put this into your
+on your system (place the `.otf` in `~/.fonts`).  Or, on Fedora you
+can just `dnf install fontawesome-fonts`.
+
+Then put this into your
 `~/.i3/config` (and see further config for i3status below):
 
     bar {
